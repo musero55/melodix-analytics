@@ -1,0 +1,31 @@
+# PostgreSQL del proyecto. Es la única vía para levantar la base:
+# no se instala PostgreSQL en el sistema anfitrión.
+#
+#   docker compose up -d      # arranca (idempotente)
+#   docker compose ps         # comprueba que figura como healthy
+#   docker compose down       # detiene y conserva los datos
+#   docker compose down -v    # detiene y borra el warehouse (reset total)
+#
+# El puerto del host se toma de PG_PORT (por defecto 5432).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: analytics-pg
+    environment:
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics
+      POSTGRES_DB: postgres
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - analytics_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analytics -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  analytics_pgdata:
